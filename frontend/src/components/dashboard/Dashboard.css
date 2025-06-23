@@ -1,0 +1,31 @@
+/* frontend/src/components/dashboard/Dashboard.css */
+/* .dashboard-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-title {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.dashboard-text {
+  color: #666;
+  margin-bottom: 10px;
+  font-size: 16px;
+} */
+
+
+/* frontend/src/components/dashboard/Dashboard.css */
+.dashboard {
+  display: flex;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+}

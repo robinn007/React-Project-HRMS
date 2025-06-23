@@ -1,0 +1,14 @@
+/* frontend/src/pages/DashboardPage.css */
+.dashboard-page {
+  /* min-height: 100vh; */
+  background: #f8f9fa;
+  display: flex;
+}
+
+.dashboard-main {
+  width: 100%;
+}
+
+.dashboard-hero{
+  margin-top: 20px;
+}
