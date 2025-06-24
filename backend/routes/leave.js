@@ -1,16 +1,17 @@
 // backend/routes/leave.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Leave = require('../models/Leave');
-const Attendance = require('../models/Attendance');
-const Employee = require('../models/Employee');
-const { protect } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const path = require('path');
-const fs = require('fs');
+const Leave = require("../models/Leave");
+const Attendance = require("../models/Attendance");
+const Employee = require("../models/Employee");
+const { protect } = require("../middleware/auth");
+const upload = require("../middleware/upload");
+const path = require("path");
+const fs = require("fs");
+const moment = require("moment-timezone");
 
 // POST /api/leave - Create a new leave request
-router.post('/', protect, upload.single('document'), async (req, res) => {
+router.post("/", protect, upload.single("document"), async (req, res) => {
   try {
     const { employeeId, startDate, endDate, leaveType, reason } = req.body;
 
@@ -18,76 +19,100 @@ router.post('/', protect, upload.single('document'), async (req, res) => {
     if (!employeeId || !startDate || !endDate || !leaveType || !reason) {
       return res.status(400).json({
         success: false,
-        message: 'Employee ID, start date, end date, leave type, and reason are required',
+        message: "Employee ID, start date, end date, leave type, and reason are required",
       });
     }
 
-    if (isNaN(new Date(startDate).getTime()) || isNaN(new Date(endDate).getTime())) {
+    // Parse dates strictly as YYYY-MM-DD
+    const parsedStartDate = moment(startDate, "YYYY-MM-DD", true);
+    const parsedEndDate = moment(endDate, "YYYY-MM-DD", true);
+
+    if (!parsedStartDate.isValid() || !parsedEndDate.isValid()) {
+      console.log("Invalid date format - startDate:", startDate, "endDate:", endDate);
       return res.status(400).json({
         success: false,
-        message: 'Invalid date format',
+        message: "Invalid date format. Use YYYY-MM-DD (e.g., 2025-06-25).",
       });
     }
 
-    if (new Date(endDate) < new Date(startDate)) {
+    // Normalize to midnight IST
+    const normalizedStartDate = parsedStartDate.tz("Asia/Kolkata").startOf("day").toDate();
+    const normalizedEndDate = parsedEndDate.tz("Asia/Kolkata").startOf("day").toDate();
+
+    // Validate endDate >= startDate
+    if (normalizedEndDate < normalizedStartDate) {
       return res.status(400).json({
         success: false,
-        message: 'End date cannot be before start date',
+        message: "End date cannot be before start date",
       });
     }
 
-    // Ensure startDate is at least tomorrow
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const normalizedStartDate = new Date(new Date(startDate).setHours(0, 0, 0, 0));
+    // Check if startDate is tomorrow or later
+    const today = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    const tomorrow = moment(today).add(1, "day").toDate();
+
+    console.log("Received startDate:", startDate);
+    console.log("Parsed startDate:", parsedStartDate.format());
+    console.log("Normalized startDate (IST):", normalizedStartDate);
+    console.log("Today (IST):", today);
+    console.log("Tomorrow (IST):", tomorrow);
 
     if (normalizedStartDate < tomorrow) {
       return res.status(400).json({
         success: false,
-        message: 'Leave can only start from tomorrow or later',
+        message: "Leave can only start from tomorrow or later",
       });
     }
 
     // Check if employee exists and belongs to the user
-    const employee = await Employee.findOne({ _id: employeeId, createdBy: req.user._id });
+    const employee = await Employee.findOne({
+      _id: employeeId,
+      createdBy: req.user._id,
+    });
     if (!employee) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
-        message: 'Employee not found or unauthorized',
+        message: "Employee not found or unauthorized",
       });
     }
 
     // Check if employee is "Present" today
-    const normalizedToday = new Date(today);
     const attendance = await Attendance.findOne({
       employeeId,
-      date: normalizedToday,
+      date: today,
     });
 
-    if (!attendance || attendance.status !== 'Present') {
+    if (!attendance || attendance.status !== "Present") {
       return res.status(400).json({
         success: false,
-        message: 'Employee must be marked as Present today to request a leave',
+        message: "Employee must be marked as Present today to request a leave",
       });
     }
 
     // Validate leave type
-    if (!['Sick Leave', 'Casual Leave', 'Annual Leave', 'Maternity Leave', 'Paternity Leave', 'Emergency Leave'].includes(leaveType)) {
+    if (
+      ![
+        "Sick Leave",
+        "Casual Leave",
+        "Annual Leave",
+        "Maternity Leave",
+        "Paternity Leave",
+        "Emergency Leave",
+      ].includes(leaveType)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid leave type',
+        message: "Invalid leave type",
       });
     }
 
     const leaveData = {
       employeeId,
       startDate: normalizedStartDate,
-      endDate: new Date(new Date(endDate).setHours(0, 0, 0, 0)),
+      endDate: normalizedEndDate,
       leaveType,
       reason,
-      status: 'Pending',
+      status: "Pending",
       createdBy: req.user._id,
     };
 
@@ -100,21 +125,22 @@ router.post('/', protect, upload.single('document'), async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Leave request created successfully',
+      message: "Leave request created successfully",
       data: leave,
     });
   } catch (error) {
-    console.error('Create leave error:', error);
+    console.error("Create leave error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error creating leave request',
+      message: "Error creating leave request",
       error: error.message,
     });
   }
 });
 
+
 // GET /api/leave - Get leave requests
-router.get('/', protect, async (req, res) => {
+router.get("/", protect, async (req, res) => {
   try {
     const { search, status } = req.query;
     let query = { createdBy: req.user._id };
@@ -123,21 +149,21 @@ router.get('/', protect, async (req, res) => {
       const employees = await Employee.find({
         createdBy: req.user._id,
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
         ],
-      }).select('_id');
+      }).select("_id");
 
-      const employeeIds = employees.map(emp => emp._id);
+      const employeeIds = employees.map((emp) => emp._id);
       query.employeeId = { $in: employeeIds };
     }
 
-    if (status && status !== 'All') {
+    if (status && status !== "All") {
       query.status = status;
     }
 
     const leaves = await Leave.find(query)
-      .populate('employeeId', 'name position')
+      .populate("employeeId", "name position")
       .sort({ createdAt: -1 });
 
     res.json({
@@ -145,32 +171,35 @@ router.get('/', protect, async (req, res) => {
       data: leaves,
     });
   } catch (error) {
-    console.error('Fetch leaves error:', error);
+    console.error("Fetch leaves error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching leave requests',
+      message: "Error fetching leave requests",
       error: error.message,
     });
   }
 });
 
 // PATCH /api/leave/:id/status - Update leave status
-router.patch('/:id/status', protect, async (req, res) => {
+router.patch("/:id/status", protect, async (req, res) => {
   try {
     const { status } = req.body;
 
-    if (!['Pending', 'Approved', 'Rejected'].includes(status)) {
+    if (!["Pending", "Approved", "Rejected"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status value',
+        message: "Invalid status value",
       });
     }
 
-    const leave = await Leave.findOne({ _id: req.params.id, createdBy: req.user._id });
+    const leave = await Leave.findOne({
+      _id: req.params.id,
+      createdBy: req.user._id,
+    });
     if (!leave) {
       return res.status(404).json({
         success: false,
-        message: 'Leave request not found or unauthorized',
+        message: "Leave request not found or unauthorized",
       });
     }
 
@@ -179,33 +208,36 @@ router.patch('/:id/status', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Leave status updated successfully',
+      message: "Leave status updated successfully",
       data: leave,
     });
   } catch (error) {
-    console.error('Update leave status error:', error);
+    console.error("Update leave status error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error updating leave status',
+      message: "Error updating leave status",
       error: error.message,
     });
   }
 });
 
 // GET /api/leave/:id/document - Download leave document
-router.get('/:id/document', protect, async (req, res) => {
+router.get("/:id/document", protect, async (req, res) => {
   try {
-    const leave = await Leave.findOne({ _id: req.params.id, createdBy: req.user._id });
+    const leave = await Leave.findOne({
+      _id: req.params.id,
+      createdBy: req.user._id,
+    });
     if (!leave) {
       return res.status(404).json({
         success: false,
-        message: 'Leave request not found or unauthorized',
+        message: "Leave request not found or unauthorized",
       });
     }
     if (!leave.document) {
       return res.status(404).json({
         success: false,
-        message: 'No document uploaded for this leave',
+        message: "No document uploaded for this leave",
       });
     }
 
@@ -213,24 +245,24 @@ router.get('/:id/document', protect, async (req, res) => {
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
         success: false,
-        message: 'Document file not found on server',
+        message: "Document file not found on server",
       });
     }
 
     res.download(filePath, path.basename(leave.document), (err) => {
       if (err) {
-        console.error('File download error:', err);
+        console.error("File download error:", err);
         res.status(500).json({
           success: false,
-          message: 'Error downloading document',
+          message: "Error downloading document",
         });
       }
     });
   } catch (error) {
-    console.error('Download document error:', error);
+    console.error("Download document error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: "Server error",
       error: error.message,
     });
   }
