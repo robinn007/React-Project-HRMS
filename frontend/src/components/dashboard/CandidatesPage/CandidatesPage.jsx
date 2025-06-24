@@ -154,7 +154,7 @@ const CandidatesPage = () => {
 
   return (
     <div className={styles.mainContent}>
-      <Header />
+      <Header title= "Candidates" />
       <div className={styles.contentArea}>
         <Filters
           statusFilter={statusFilter}

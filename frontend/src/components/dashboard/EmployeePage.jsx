@@ -8,6 +8,7 @@ import { STATUS_COLORS, STATUS_OPTIONS } from './CandidatesPage/constants';
 import { ChevronDown, Search, MoreHorizontal, Trash2, SquarePen } from 'lucide-react';
 import PropTypes from 'prop-types';
 import EditEmployeeModal from './EditEmployeeModal';
+import Header from './CandidatesPage/Header.jsx';
 
 /**
  * Dropdown component for selecting options
@@ -200,12 +201,9 @@ const EmployeePage = () => {
   };
 
   return (
+    <>
     <div className={styles.mainContent}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.pageTitle}>Employees</h1>
-        </div>
-      </div>
+        <Header title= "Employess" />
       <div className={styles.contentArea}>
         <div className={styles.filtersSection}>
           <div className={styles.filtersLeft}>
@@ -352,6 +350,7 @@ const EmployeePage = () => {
         />
       </div>
     </div>
+    </>
   );
 };
 

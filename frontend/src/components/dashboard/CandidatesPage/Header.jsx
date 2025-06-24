@@ -7,7 +7,7 @@ import styles from './CandidatesPage.module.css';
  * Header component for the page
  * @component
  */
-const Header = () => {
+const Header = ({title}) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -38,7 +38,7 @@ const Header = () => {
   return (
     <div className={styles.header}>
       <div className={styles.headerLeft}>
-        <h1 className={styles.pageTitle}>Candidates</h1>
+        <h1 className={styles.pageTitle}>{title}</h1>
       </div>
       <div className={styles.headerRight}>
         <Mail className={styles.headerIcon} size={20} aria-label="Messages" />

@@ -7,10 +7,12 @@ import EmployeePage from './EmployeePage.jsx';
 import AttendancePage from './AttendancePage.jsx';
 import LeavesPage from './LeavesPage.jsx';
 
+
 const Dashboard = () => {
   const [activeItem, setActiveItem] = useState('candidates');
 
   const renderContent = () => {
+  
     switch (activeItem) {
       case 'candidates':
         return <CandidatesPage />

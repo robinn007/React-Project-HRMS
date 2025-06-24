@@ -6,10 +6,10 @@ import * as apiService from '../../services/candidateService';
 import styles from './CandidatesPage/CandidatesPage.module.css';
 import { ChevronDown, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
+import Header from './CandidatesPage/Header';
 
 // Attendance status options
 const ATTENDANCE_STATUS_OPTIONS = [
-   { value: 'All', label: 'All' },
   { value: 'Present', label: 'Present' },
   { value: 'Absent', label: 'Absent' },
 ];
@@ -302,11 +302,7 @@ const AttendancePage = () => {
 
   return (
     <div className={styles.mainContent}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.pageTitle}>Attendance</h1>
-        </div>
-      </div>
+      <Header title= "Attendance" />
       <div className={styles.contentArea}>
         <div className={styles.filtersSection}>
           <div className={styles.filtersLeft}>
