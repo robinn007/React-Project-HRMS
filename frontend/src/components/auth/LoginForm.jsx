@@ -23,7 +23,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="login-form-container" style={{ border: "5px solid green" }}>
+    <div className="login-form-container">
       <h2 className="login-form-title">Login to HRMS</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="login-form">
         <Input

@@ -117,6 +117,7 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
                   id="position"
                   {...register('position')}
                   className={styles.input}
+                  style={{height: "36px", padding:"10px"}}
                 />
                 {errors.position && (
                   <span className={styles.error}>{errors.position.message}</span>
@@ -129,6 +130,7 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
                   id="joiningDate"
                   {...register('joiningDate')}
                   className={styles.input}
+                    style={{height: "36px", padding:"10px"}}
                 />
                 {errors.joiningDate && (
                   <span className={styles.error}>{errors.joiningDate.message}</span>
@@ -136,7 +138,9 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
               </div>
               <div className={styles.formGroup}>
                 <label htmlFor="employmentType">Employment Type *</label>
-                <select id="employmentType" {...register('employmentType')} className={styles.input}>
+                <select id="employmentType" {...register('employmentType')} className={styles.input}
+                  style={{height: "36px", padding:"10px"}}
+                >
                   {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -158,16 +162,18 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
                       placeholder="Task description"
                       {...register(`tasks.${index}.description`)}
                       className={styles.input}
+                        style={{height: "36px", padding:"10px", width: "360px"}}
                     />
                     {errors.tasks?.[index]?.description && (
                       <span className={styles.error}>{errors.tasks[index].description.message}</span>
                     )}
                   </div>
-                  <div className={styles.taskField}>
+                  <div className={styles.taskField} style={{marginTop: "12px"}}>
                     <input
                       type="date"
                       {...register(`tasks.${index}.dueDate`)}
                       className={styles.input}
+                        style={{height: "36px", padding:"10px"}}
                     />
                     {errors.tasks?.[index]?.dueDate && (
                       <span className={styles.error}>{errors.tasks[index].dueDate.message}</span>
@@ -180,7 +186,7 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
                     disabled={fields.length === 1}
                     aria-label="Remove task"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={24} />
                   </button>
                 </div>
               ))}
@@ -188,15 +194,22 @@ const EditEmployeeModal = ({ isOpen, onClose, onSubmit, employeeData }) => {
                 type="button"
                 className={styles.addTaskBtn}
                 onClick={() => append({ description: '', dueDate: '' })}
+                  style={{height: "36px", padding:"10px"}}
               >
                 <Plus size={16} /> Add Task
               </button>
             </div>
             <div className={styles.formActions}>
-              <button type="button" className={styles.cancelBtn} onClick={onClose}>
+              <button type="button" 
+              className={styles.cancelBtn} 
+              onClick={onClose}
+                style={{height: "36px", padding:"10px", width: "120px"}}
+              >
                 Cancel
               </button>
-              <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+              <button type="submit" className={styles.submitBtn} disabled={isSubmitting}
+                style={{height: "36px", padding:"10px", width: "160px"}}
+              >
                 {isSubmitting ? 'Updating...' : 'Update Employee'}
               </button>
             </div>
